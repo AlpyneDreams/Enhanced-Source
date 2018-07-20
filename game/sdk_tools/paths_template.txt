@@ -1,0 +1,5 @@
+# search paths
+../template
+../template_additional_content
+../core
+../platform

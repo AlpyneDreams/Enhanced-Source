@@ -1,0 +1,180 @@
+
+VPK: ..\platform\pak01_dir.vpk [517 files]
+Total Duplicates: 0
+
+Directory: ..\platform
+Total Duplicates: 0
+
+VPK: ..\core\pak01_dir.vpk [872 files]
+DUPLICATE FILE,SOURCE
+resource\melee_attacks.txt,platform\pak01_dir.vpk
+resource\map_builder_options.txt,platform\pak01_dir.vpk
+resource\ui\locator.res,platform\pak01_dir.vpk
+resource\vprofpanel.res,platform\pak01_dir.vpk
+resource\valvecdkeyentrydialog.res,platform\pak01_dir.vpk
+resource\txviewpanel.res,platform\pak01_dir.vpk
+resource\sourcescheme.res,platform\pak01_dir.vpk
+resource\soundeditdbbrowserpanel.res,platform\pak01_dir.vpk
+resource\setsoundnamedialog.res,platform\pak01_dir.vpk
+resource\serverevents.res,platform\pak01_dir.vpk
+resource\selectedhsvuipanel.res,platform\pak01_dir.vpk
+resource\profiles.res,platform\pak01_dir.vpk
+resource\perfuipanel.res,platform\pak01_dir.vpk
+resource\perfpropfadeuipanel.res,platform\pak01_dir.vpk
+resource\perfocclusionuipanel.res,platform\pak01_dir.vpk
+resource\paneltypepicker.res,platform\pak01_dir.vpk
+resource\optionssubvideothirdpartydlg.res,platform\pak01_dir.vpk
+resource\optionssubvideogammadlg.res,platform\pak01_dir.vpk
+resource\optionssubvideoadvanceddlg.res,platform\pak01_dir.vpk
+resource\optionssubvideo.res,platform\pak01_dir.vpk
+resource\optionssubportal.res,platform\pak01_dir.vpk
+resource\optionssubmultiplayer.res,platform\pak01_dir.vpk
+resource\optionssubmouse.res,platform\pak01_dir.vpk
+resource\optionssubkeyboardadvanceddlg.res,platform\pak01_dir.vpk
+resource\optionssubkeyboard.res,platform\pak01_dir.vpk
+resource\optionssubdifficulty.res,platform\pak01_dir.vpk
+resource\optionssubaudiothirdpartydlg.res,platform\pak01_dir.vpk
+resource\optionssubaudio.res,platform\pak01_dir.vpk
+resource\newoperationdialog.res,platform\pak01_dir.vpk
+resource\modevents.res,platform\pak01_dir.vpk
+resource\lookupviewwindow.res,platform\pak01_dir.vpk
+resource\loadingdiscpanel.res,platform\pak01_dir.vpk
+resource\loadingdialogvac.res,platform\pak01_dir.vpk
+resource\loadingdialognobannersingle.res,platform\pak01_dir.vpk
+resource\loadingdialognobanner.res,platform\pak01_dir.vpk
+resource\loadingdialogerrorvacbanned.res,platform\pak01_dir.vpk
+resource\loadingdialogerrornosteamconnection.res,platform\pak01_dir.vpk
+resource\loadingdialogerrorloggedinelsewhere.res,platform\pak01_dir.vpk
+resource\loadingdialogerror.res,platform\pak01_dir.vpk
+resource\loadingdialog.res,platform\pak01_dir.vpk
+resource\loadgamedialog.res,platform\pak01_dir.vpk
+resource\infotargetpropertiessubpanel_target.res,platform\pak01_dir.vpk
+resource\infotargetpropertiespanel.res,platform\pak01_dir.vpk
+resource\infotargetbrowserpanel.res,platform\pak01_dir.vpk
+resource\infopage_rightpane.res,platform\pak01_dir.vpk
+resource\infopage_leftpane.res,platform\pak01_dir.vpk
+resource\infopage.res,platform\pak01_dir.vpk
+resource\hltvevents.res,platform\pak01_dir.vpk
+resource\gameevents.res,platform\pak01_dir.vpk
+resource\demouipanel2.res,platform\pak01_dir.vpk
+resource\demouipanel.res,platform\pak01_dir.vpk
+resource\createmultiplayergameserverpage.res,platform\pak01_dir.vpk
+resource\combinepanelscheme.res,platform\pak01_dir.vpk
+resource\coloroperationlistpanel.res,platform\pak01_dir.vpk
+resource\colorlookupuipanel.res,platform\pak01_dir.vpk
+resource\colorlevelsuipanel.res,platform\pak01_dir.vpk
+resource\colorcurvesuipanel.res,platform\pak01_dir.vpk
+resource\colorcorrectionuipanel.res,platform\pak01_dir.vpk
+resource\colorbalanceuipanel.res,platform\pak01_dir.vpk
+resource\chatscheme.res,platform\pak01_dir.vpk
+resource\buguipanel_public.res,platform\pak01_dir.vpk
+resource\buguipanel_filequeue.res,platform\pak01_dir.vpk
+resource\buguipanel.res,platform\pak01_dir.vpk
+resource\bugreporteruploadprogress.res,platform\pak01_dir.vpk
+resource\bugreporteruploadfinished.res,platform\pak01_dir.vpk
+resource\bugreporter.res,platform\pak01_dir.vpk
+resource\askconnectpanel.res,platform\pak01_dir.vpk
+materials\dev\dev_measurerails01.vmt,platform\pak01_dir.vpk
+materials\dev\dev_measurerails01.vtf,platform\pak01_dir.vpk
+Total Duplicates: 69
+
+VPK: ..\core\pak02_dir.vpk [2091 files]
+DUPLICATE FILE,SOURCE
+materials\vgui\tools\ifm\ifm_background.vmt,platform\pak01_dir.vpk
+materials\vgui\tools\actbusy\actbusy_logo.vmt,platform\pak01_dir.vpk
+materials\vgui\resource\mic_meter_live.vmt,platform\pak01_dir.vpk
+materials\vgui\resource\mic_meter_dead.vmt,platform\pak01_dir.vpk
+materials\vgui\resource\downarrow.vmt,platform\pak01_dir.vpk
+materials\vgui\hud\800corner4.vmt,platform\pak01_dir.vpk
+materials\vgui\hud\800corner3.vmt,platform\pak01_dir.vpk
+materials\vgui\hud\800corner2.vmt,platform\pak01_dir.vpk
+materials\vgui\hud\800corner1.vmt,platform\pak01_dir.vpk
+materials\vgui\hud\800corner.vmt,platform\pak01_dir.vpk
+materials\vgui\common\l4d_spinner.vmt,platform\pak01_dir.vpk
+materials\vgui\white.vmt,platform\pak01_dir.vpk
+materials\engine\writez.vmt,platform\pak01_dir.vpk
+materials\engine\occlusionproxy_countdraw.vmt,platform\pak01_dir.vpk
+materials\engine\occlusionproxy.vmt,platform\pak01_dir.vpk
+materials\debug\env_cubemap_model.vmt,platform\pak01_dir.vpk
+materials\debug\debugworldwireframe.vmt,platform\pak01_dir.vpk
+materials\debug\debugwireframevertexcolor.vmt,platform\pak01_dir.vpk
+materials\debug\debugvertexcolor.vmt,platform\pak01_dir.vpk
+materials\debug\debugtranslucentmodelhulls.vmt,platform\pak01_dir.vpk
+materials\debug\debugsolidmodelhulls.vmt,platform\pak01_dir.vpk
+materials\debug\debugskeleton.vmt,platform\pak01_dir.vpk
+materials\debug\debugmrmwireframezbuffer.vmt,platform\pak01_dir.vpk
+materials\debug\debugmrmwireframe.vmt,platform\pak01_dir.vpk
+materials\debug\debugmrmnormals.vmt,platform\pak01_dir.vpk
+materials\debug\debugmrmfullbright2.vmt,platform\pak01_dir.vpk
+materials\debug\debugmodelbones.vmt,platform\pak01_dir.vpk
+materials\debug\debughitbox.vmt,platform\pak01_dir.vpk
+materials\debug\debugdrawflatpolygons.vmt,platform\pak01_dir.vpk
+materials\vgui\tools\ifm\ifm_background.vtf,platform\pak01_dir.vpk
+materials\vgui\tools\actbusy\actbusy_logo.vtf,platform\pak01_dir.vpk
+materials\vgui\resource\mic_meter_live.vtf,platform\pak01_dir.vpk
+materials\vgui\resource\mic_meter_dead.vtf,platform\pak01_dir.vpk
+materials\vgui\resource\downarrow.vtf,platform\pak01_dir.vpk
+materials\vgui\hud\800corner4.vtf,platform\pak01_dir.vpk
+materials\vgui\hud\800corner3.vtf,platform\pak01_dir.vpk
+materials\vgui\hud\800corner2.vtf,platform\pak01_dir.vpk
+materials\vgui\hud\800corner1.vtf,platform\pak01_dir.vpk
+materials\vgui\hud\800corner.vtf,platform\pak01_dir.vpk
+materials\vgui\white.vtf,platform\pak01_dir.vpk
+Total Duplicates: 40
+
+Directory: ..\core
+DUPLICATE FILE,SOURCE
+materials\engine\l4d_spinner.vtf,platform\pak01_dir.vpk
+materials\vgui\progressbar.vtf,core\pak02_dir.vpk
+materials\vgui\progressbar_bg.vtf,core\pak02_dir.vpk
+materials\vgui\common\l4d_spinner.vmt,platform\pak01_dir.vpk
+materials\vgui\common\swarm_cycle.vmt,core\pak02_dir.vpk
+materials\vgui\common\swarm_cycle_anim.vmt,core\pak02_dir.vpk
+resource\map_builder_options.txt,platform\pak01_dir.vpk
+resource\melee_attacks.txt,platform\pak01_dir.vpk
+resource\particleemitters.txt,platform\pak01_dir.vpk
+Total Duplicates: 9
+
+Directory: ..\template_additional_content
+Total Duplicates: 0
+
+VPK: ..\template\pak01_dir.vpk [115 files]
+DUPLICATE FILE,SOURCE
+materials\skybox\blue_hdrup.vtf,core\pak01_dir.vpk
+materials\skybox\blue_hdrrt.vtf,core\pak01_dir.vpk
+materials\skybox\blue_hdrlf.vtf,core\pak01_dir.vpk
+materials\skybox\blue_hdrft.vtf,core\pak01_dir.vpk
+materials\skybox\blue_hdrdn.vtf,core\pak01_dir.vpk
+materials\skybox\blue_hdrbk.vtf,core\pak01_dir.vpk
+materials\skybox\white_hdrup.vmt,core\pak01_dir.vpk
+materials\skybox\white_hdrrt.vmt,core\pak01_dir.vpk
+materials\skybox\white_hdrlf.vmt,core\pak01_dir.vpk
+materials\skybox\white_hdrft.vmt,core\pak01_dir.vpk
+materials\skybox\white_hdrdn.vmt,core\pak01_dir.vpk
+materials\skybox\white_hdrbk.vmt,core\pak01_dir.vpk
+materials\skybox\blue_hdrup.vmt,core\pak01_dir.vpk
+materials\skybox\blue_hdrrt.vmt,core\pak01_dir.vpk
+materials\skybox\blue_hdrlf.vmt,core\pak01_dir.vpk
+materials\skybox\blue_hdrft.vmt,core\pak01_dir.vpk
+materials\skybox\blue_hdrdn.vmt,core\pak01_dir.vpk
+materials\skybox\blue_hdrbk.vmt,core\pak01_dir.vpk
+materials\skybox\black_hdrup.vmt,core\pak01_dir.vpk
+materials\skybox\black_hdrrt.vmt,core\pak01_dir.vpk
+materials\skybox\black_hdrrft.vmt,core\pak01_dir.vpk
+materials\skybox\black_hdrlf.vmt,core\pak01_dir.vpk
+materials\skybox\black_hdrdn.vmt,core\pak01_dir.vpk
+materials\skybox\black_hdrbk.vmt,core\pak01_dir.vpk
+Total Duplicates: 24
+
+Directory: ..\template
+DUPLICATE FILE,SOURCE
+cfg\config.cfg,core
+cfg\moddefaults.txt,core
+cfg\valve.rc,core
+particles\particles_manifest.txt,core
+resource\closecaption_english.txt,core
+scripts\game_sounds_ui.txt,core
+sound\ui\hint.wav,core
+Total Duplicates: 7
+
+Grand Total: 149 duplicate files
