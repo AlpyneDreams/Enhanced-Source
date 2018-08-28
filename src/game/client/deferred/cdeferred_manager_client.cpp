@@ -82,10 +82,6 @@ void CopyDev()
 
 bool CDeferredManagerClient::Init()
 {
-	CopyDev();
-
-	AssertMsg( g_pCurrentViewRender == NULL, "viewrender already allocated?!" );
-
 	const bool bDeferredEnabled = CommandLine() && CommandLine()->FindParm( "-nodeferred" ) == 0;
 
 	if (!bDeferredEnabled) {
@@ -94,6 +90,10 @@ bool CDeferredManagerClient::Init()
 
 		return true;
 	}
+	
+	//CopyDev();
+
+	AssertMsg( g_pCurrentViewRender == NULL, "viewrender already allocated?!" );
 
 	const bool bForceDeferred = CommandLine() && CommandLine()->FindParm("-forcedeferred") != 0;
 	bool bSM30 = g_pMaterialSystemHardwareConfig->GetDXSupportLevel() >= 95;
