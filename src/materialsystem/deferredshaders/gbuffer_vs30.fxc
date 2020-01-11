@@ -17,7 +17,6 @@
 
 // SKIP:		$MODEL && $MULTIBLEND
 // SKIP:		$BUMPMAP2 && $MULTIBLEND
-// SKIP:		$LIGHTMAP && $MULTIBLEND
 // SKIP:		$LIGHTMAP && $MODEL
 
 #include "common_vs_fxc.h"
@@ -110,7 +109,11 @@ struct VS_OUTPUT
 #endif
 
 #if BUMPMAP2 || LIGHTMAP
+	// xy: lightmap texcoord 1, w: bumpmap2 blend
 	float4 vColor_0					: COLOR0;
+#endif
+#if LIGHTMAP == 2
+	float4 lightmapTexCoord2And3		: TEXCOORD6;
 #endif
 
 #if MULTIBLEND
@@ -118,9 +121,9 @@ struct VS_OUTPUT
 	float4 vTexCoordBlendmod23			: TEXCOORD4;
 #endif
 	float3 vAlphaBlend					: TEXCOORD5;
-	float4 vColorBlend1					: COLOR0;
-	float4 vColorBlend2					: COLOR1;
-	float4 vColorBlend3					: TEXCOORD6;
+	float3 vColorBlend1					: COLOR1;
+	//float4 vColorBlend2					: COLOR1;
+	//float4 vColorBlend3					: TEXCOORD6;
 	float3 vColorBlend4					: TEXCOORD7;
 #endif
 };
@@ -204,14 +207,26 @@ VS_OUTPUT main( const VS_INPUT In )
 	Out.vColor_0 = float4(0, 0, 0, 1);
 #endif
 
-#if LIGHTMAP
-	Out.vColor_0.xy = In.vLightmapTexCoord.xy;
+	//  compute lightmap coordinates
+#if LIGHTMAP == 2
+	// coord 1: base + offset
+	Out.vColor_0.xy = In.vLightmapTexCoord + In.vLightmapTexCoordOffset;
+	
+	// coord 2: base + offset * 2 
+	float2 lightmapTexCoord2 = Out.vColor_0.xy + In.vLightmapTexCoordOffset;
+	// coord 3: base + offset * 3
+	float2 lightmapTexCoord3 = lightmapTexCoord2 + In.vLightmapTexCoordOffset;
+
+	Out.lightmapTexCoord2And3.xy = lightmapTexCoord2;
+	Out.lightmapTexCoord2And3.zw = lightmapTexCoord3;
+#elif LIGHTMAP == 1
+	Out.vColor_0.xy = In.vLightmapTexCoord;
 #endif
 
 #if MULTIBLEND
-	Out.vColorBlend1 = In.vColorBlend1;
-	Out.vColorBlend2 = In.vColorBlend2;
-	Out.vColorBlend3 = In.vColorBlend3;
+	Out.vColorBlend1.r = In.vColorBlend1.a;
+	Out.vColorBlend1.g = In.vColorBlend2.a;
+	Out.vColorBlend1.b = In.vColorBlend3.a;
 	Out.vColorBlend4.xyz = In.vColorBlend4.xyz;
 	Out.vAlphaBlend.xyz = In.vAlphaBlend.xyz;
 #endif

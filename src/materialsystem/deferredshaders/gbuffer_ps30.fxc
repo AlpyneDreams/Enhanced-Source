@@ -14,13 +14,15 @@
 
 // SKIP:		$MODEL && $MULTIBLEND
 // SKIP:		$BUMPMAP2 && $MULTIBLEND
-// SKIP:		$LIGHTMAP && $MULTIBLEND
 
 // SKIP:		$DECAL && $MULTIBLEND
 // SKIP:		$DECAL && $BLENDMODULATE
 // SKIP:		$DECAL && $BUMPMAP
 // SKIP:		$DECAL && $NOCULL
 // SKIP:		$DECAL && $PHONGMAP
+
+// SKIP:		$LIGHTMAP && $MODEL
+// SKIP:		($LIGHTMAP == 2) && !$BUMPMAP
 
 #include "common_ps_fxc.h"
 #include "common_deferred_fxc.h"
@@ -90,16 +92,19 @@ struct PS_INPUT
 #if BUMPMAP2 || LIGHTMAP
 	float4 vColor_0					: COLOR0;
 #endif
+#if LIGHTMAP == 2
+	float4 lightmapTexCoord2And3		: TEXCOORD6;
+#endif
 
 #if MULTIBLEND
 #if BLENDMODULATE
 	float4 vTexCoordBlendmod23			: TEXCOORD4;
 #endif
 	float3 vAlphaBlend					: TEXCOORD5;
-	float4 vColorBlend1					: COLOR0;
-	float4 vColorBlend2					: COLOR1;
-	float4 vColorBlend3					: TEXCOORD6;
-	float3 vColorBlend4					: TEXCOORD7;
+	float3 vColorBlend1					: COLOR1;
+	//float4 vColorBlend2					: COLOR1;
+	//float4 vColorBlend3					: TEXCOORD6;
+	//float3 vColorBlend4					: TEXCOORD7;
 #endif
 };
 
@@ -120,6 +125,27 @@ struct PS_OUTPUT
 
 #endif
 };
+
+#if LIGHTMAP
+float3 DiffuseBump( sampler lightmapSampler,
+                   float2  lightmapTexCoord1,
+                   float2  lightmapTexCoord2,
+                   float2  lightmapTexCoord3,
+                   float3   normal )
+{
+	float3 lightmapColor1 = tex2D( lightmapSampler, lightmapTexCoord1 ) * LIGHT_MAP_SCALE;
+	float3 lightmapColor2 = tex2D( lightmapSampler, lightmapTexCoord2 ) * LIGHT_MAP_SCALE;
+	float3 lightmapColor3 = tex2D( lightmapSampler, lightmapTexCoord3 ) * LIGHT_MAP_SCALE;
+
+	float3 diffuseLighting;
+	diffuseLighting = saturate( dot( normal, bumpBasis[0] ) ) * lightmapColor1 +
+					  saturate( dot( normal, bumpBasis[1] ) ) * lightmapColor2 +
+					  saturate( dot( normal, bumpBasis[2] ) ) * lightmapColor3;
+
+	return diffuseLighting; //float4( diffuseLighting, LuminanceScaled( diffuseLighting ) );
+}
+
+#endif
 
 
 PS_OUTPUT main( const PS_INPUT In )
@@ -153,13 +179,13 @@ PS_OUTPUT main( const PS_INPUT In )
 	float remaining = 1;
 	float4 flBlendFactors;
 #if BLENDMODULATE
-	flBlendFactors.x = GetMultiBlendModulated( tex2D( sBlendmodulate, In.vTexCoord.zw ).rg, In.vColorBlend1.a, In.vAlphaBlend.x, remaining );
-	flBlendFactors.y = GetMultiBlendModulated( tex2D( sBlendmodulate2, In.vTexCoordBlendmod23.xy ).rg, In.vColorBlend2.a, In.vAlphaBlend.y, remaining );
-	flBlendFactors.z = GetMultiBlendModulated( tex2D( sBlendmodulate3, In.vTexCoordBlendmod23.zw ).rg, In.vColorBlend3.a, In.vAlphaBlend.z, remaining );
+	flBlendFactors.x = GetMultiBlendModulated( tex2D( sBlendmodulate, In.vTexCoord.zw ).rg, In.vColorBlend1.r, In.vAlphaBlend.x, remaining );
+	flBlendFactors.y = GetMultiBlendModulated( tex2D( sBlendmodulate2, In.vTexCoordBlendmod23.xy ).rg, In.vColorBlend1.g, In.vAlphaBlend.y, remaining );
+	flBlendFactors.z = GetMultiBlendModulated( tex2D( sBlendmodulate3, In.vTexCoordBlendmod23.zw ).rg, In.vColorBlend1.b, In.vAlphaBlend.z, remaining );
 #else
-	flBlendFactors.x = GetMultiBlend( In.vColorBlend1.a, remaining );
-	flBlendFactors.y = GetMultiBlend( In.vColorBlend2.a, remaining );
-	flBlendFactors.z = GetMultiBlend( In.vColorBlend3.a, remaining );
+	flBlendFactors.x = GetMultiBlend( In.vColorBlend1.r, remaining );
+	flBlendFactors.y = GetMultiBlend( In.vColorBlend1.g, remaining );
+	flBlendFactors.z = GetMultiBlend( In.vColorBlend1.b, remaining );
 #endif
 	flBlendFactors.w = remaining;
 	bumpNormal = bumpNormal * flBlendFactors.x
@@ -169,8 +195,9 @@ PS_OUTPUT main( const PS_INPUT In )
 #endif
 
 	float3 tangentNormal;
+	float3 bumpNormalScaled = bumpNormal * 2.0f - 1.0f;
 #if BUMPMAP == 1
-	tangentNormal = bumpNormal * 2.0f - 1.0f;
+	tangentNormal = bumpNormalScaled;
 #else
 	tangentNormal = normalize( bumpBasis[0]*bumpNormal.x + bumpBasis[1]*bumpNormal.y + bumpBasis[2]*bumpNormal.z);
 #endif
@@ -206,7 +233,11 @@ PS_OUTPUT main( const PS_INPUT In )
 #endif
 
 	Out.vColor_1 = float4( In.worldNormal_Depth.w, 0, 0, 1 );
-#if LIGHTMAP
+
+#if LIGHTMAP == 2
+	float3 flLightmapSamples = DiffuseBump( sLightmap, In.vColor_0.xy, In.lightmapTexCoord2And3.xy, In.lightmapTexCoord2And3.zw, bumpNormalScaled );
+	Out.vColorLightAccum = float4( flLightmapSamples, 0 );
+#elif LIGHTMAP == 1
 	Out.vColorLightAccum = float4( tex2D( sLightmap, In.vColor_0.xy ).rgb * LIGHT_MAP_SCALE, 0 );
 #else
 	Out.vColorLightAccum = float4( 0, 0, 0, 0 );
