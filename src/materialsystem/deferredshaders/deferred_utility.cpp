@@ -9,7 +9,7 @@ void GetTexcoordSettings( const bool bDecal, const bool bMultiBlend,
 	int &iNumTexcoords, int **iTexcoordDim )
 {
 	static int iDimDefault[] = {
-		2, 0, 3,
+		2, 2, 2,
 	};
 
 	static int iDimMultiBlend[] = {

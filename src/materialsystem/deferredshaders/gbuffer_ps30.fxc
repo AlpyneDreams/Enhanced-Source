@@ -6,6 +6,7 @@
 // STATIC:		"BUMPMAP2"			"0..1"
 // STATIC:		"BLENDMODULATE"		"0..1"
 // STATIC:		"MULTIBLEND"		"0..1"
+// STATIC:		"LIGHTMAP"			"0..2"
 
 // SKIP:		!$BUMPMAP2 && !$MULTIBLEND && $BLENDMODULATE
 // SKIP:		!$BUMPMAP && $BUMPMAP2
@@ -13,6 +14,7 @@
 
 // SKIP:		$MODEL && $MULTIBLEND
 // SKIP:		$BUMPMAP2 && $MULTIBLEND
+// SKIP:		$LIGHTMAP && $MULTIBLEND
 
 // SKIP:		$DECAL && $MULTIBLEND
 // SKIP:		$DECAL && $BLENDMODULATE
@@ -63,6 +65,9 @@ sampler sBlendmodulate3						: register( s8 );
 #endif
 #endif
 
+#if LIGHTMAP
+sampler sLightmap							: register( s15 );
+#endif
 
 struct PS_INPUT
 {
@@ -82,7 +87,7 @@ struct PS_INPUT
 	float vDir						: VFACE;
 #endif
 
-#if BUMPMAP2
+#if BUMPMAP2 || LIGHTMAP
 	float4 vColor_0					: COLOR0;
 #endif
 
@@ -107,7 +112,10 @@ struct PS_OUTPUT
 	float4 vColor_1				:	COLOR1;
 
 #	if ( DEFCFG_LIGHTCTRL_PACKING == 0 )
-	float4 vColor_2				:	COLOR2;
+	float4 vColorLightCtrl				:	COLOR2;
+	float4 vColorLightAccum				:	COLOR3;
+#	else
+	float4 vColorLightAccum				:	COLOR2;
 #	endif
 
 #endif
@@ -194,12 +202,18 @@ PS_OUTPUT main( const PS_INPUT In )
 		g_flHalflambert_Litface.x, g_flHalflambert_Litface.y ) );
 #else
 	Out.vColor_0 = float4( worldNormal, 1 );
-	Out.vColor_2 = float4( phong_exp / 63.0f, g_flHalflambert_Litface.xy, 0 );
+	Out.vColorLightCtrl = float4( phong_exp / 63.0f, g_flHalflambert_Litface.xy, 0 );
 #endif
 
 	Out.vColor_1 = float4( In.worldNormal_Depth.w, 0, 0, 1 );
-
+#if LIGHTMAP
+	Out.vColorLightAccum = float4( tex2D( sLightmap, In.vColor_0.xy ).rgb * LIGHT_MAP_SCALE, 0 );
+#else
+	Out.vColorLightAccum = float4( 0, 0, 0, 0 );
 #endif
+
+
+#endif // !DECAL
 
 	return Out;
 }

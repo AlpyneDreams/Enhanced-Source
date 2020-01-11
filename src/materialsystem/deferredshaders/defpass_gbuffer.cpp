@@ -71,6 +71,9 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 	const bool bFastVTex = g_pHardwareConfig->HasFastVertexTextures();
 	const bool bNoCull = IS_FLAG_SET( MATERIAL_VAR_NOCULL );
 
+	const bool bLightmap = !bModel && IS_FLAG2_SET( MATERIAL_VAR2_LIGHTING_LIGHTMAP );
+	const bool bLightmapBump = bLightmap && IS_FLAG2_SET( MATERIAL_VAR2_LIGHTING_BUMPED_LIGHTMAP );
+
 	const bool bAlbedo = PARM_TEX( info.iAlbedo );
 	const bool bAlbedo2 = bDeferredShading && PARM_TEX( info.iAlbedo2 );
 	const bool bAlbedo3 = bDeferredShading && PARM_TEX( info.iAlbedo3 );
@@ -177,6 +180,23 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 			}
 		}
 
+		if ( bLightmap )
+		{
+			pShaderShadow->EnableTexture( SHADER_SAMPLER15, true );
+			if ( g_pHardwareConfig->GetHDRType() == HDR_TYPE_NONE )
+			{
+				pShaderShadow->EnableSRGBRead( SHADER_SAMPLER15, true );
+			}
+			else
+			{
+				pShaderShadow->EnableSRGBRead( SHADER_SAMPLER15, false );
+			}
+
+			iTexCoordNum = 2;
+			
+			if ( bLightmapBump ) iTexCoordNum = 3;
+		}
+
 		pShaderShadow->EnableAlphaWrites( true );
 
 		pShaderShadow->VertexShaderVertexFormat( iVFmtFlags, iTexCoordNum, pTexCoordDim, iUserDataSize );
@@ -186,6 +206,8 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 			pShader->EnableAlphaBlending( SHADER_BLEND_SRC_ALPHA, SHADER_BLEND_ONE_MINUS_SRC_ALPHA );
 		}
 
+		int iLightmapMode = !bLightmap ? 0 : bLightmapBump ? 2 : 1;
+
 		DECLARE_STATIC_VERTEX_SHADER( gbuffer_vs30 );
 		SET_STATIC_VERTEX_SHADER_COMBO( MODEL, bModel );
 		SET_STATIC_VERTEX_SHADER_COMBO( MORPHING_VTEX, bModel && bFastVTex );
@@ -193,6 +215,7 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 		SET_STATIC_VERTEX_SHADER_COMBO( BUMPMAP2, bBumpmap2 && !bMultiBlend );
 		SET_STATIC_VERTEX_SHADER_COMBO( BLENDMODULATE, bBlendmodulate );
 		SET_STATIC_VERTEX_SHADER_COMBO( MULTIBLEND, bMultiBlendBump );
+		SET_STATIC_VERTEX_SHADER_COMBO( LIGHTMAP, iLightmapMode );
 		SET_STATIC_VERTEX_SHADER( gbuffer_vs30 );
 
 #if DEFCFG_DEFERRED_SHADING == 1
@@ -207,6 +230,7 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 		SET_STATIC_PIXEL_SHADER_COMBO( PHONGMAP, bPhongmap );
 		SET_STATIC_PIXEL_SHADER_COMBO( BLENDMODULATE, bBlendmodulate );
 		SET_STATIC_PIXEL_SHADER_COMBO( MULTIBLEND, bMultiBlendBump );
+		SET_STATIC_PIXEL_SHADER_COMBO( LIGHTMAP, iLightmapMode );
 #if DEFCFG_DEFERRED_SHADING == 1
 		SET_STATIC_PIXEL_SHADER_COMBO( TWOTEXTURE, (bAlbedo2 || bBumpmap2) && !bMultiBlend );
 		SET_STATIC_PIXEL_SHADER_COMBO( DECAL, bIsDecal );
@@ -317,6 +341,14 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 				}
 			}
 
+			if ( bLightmap )
+			{
+				if ( bLightmapBump )
+					tmpBuf.BindStandardTexture( SHADER_SAMPLER15, TEXTURE_LIGHTMAP_BUMPED );
+				else
+					tmpBuf.BindStandardTexture( SHADER_SAMPLER15, TEXTURE_LIGHTMAP );
+			}
+
 			tmpBuf.SetPixelShaderConstant2( 1,
 				IS_FLAG_SET( MATERIAL_VAR_HALFLAMBERT ) ? 1.0f : 0.0f,
 				PARM_SET( info.iLitface ) ? 1.0f : 0.0f );
@@ -347,8 +379,8 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 
 		if ( bModel && bFastVTex )
 		{
-			bool bUnusedTexCoords[3] = { false, true, !pShaderAPI->IsHWMorphingEnabled() || !bIsDecal };
-			pShaderAPI->MarkUnusedVertexFields( 0, 3, bUnusedTexCoords );
+			//bool bUnusedTexCoords[3] = { false, true, !pShaderAPI->IsHWMorphingEnabled() || !bIsDecal };
+			//pShaderAPI->MarkUnusedVertexFields( 0, 3, bUnusedTexCoords );
 		}
 
 		float vPos[4] = {0,0,0,0};

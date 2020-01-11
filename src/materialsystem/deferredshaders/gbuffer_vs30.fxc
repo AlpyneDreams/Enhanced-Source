@@ -5,6 +5,8 @@
 // STATIC:		"BUMPMAP2"				"0..1"
 // STATIC:		"BLENDMODULATE"			"0..1"
 // STATIC:		"MULTIBLEND"			"0..1"
+// STATIC:		"LIGHTMAP"				"0..2"
+
 
 // DYNAMIC:		"COMPRESSED_VERTS"		"0..1"
 // DYNAMIC:		"SKINNING"				"0..1"
@@ -15,6 +17,8 @@
 
 // SKIP:		$MODEL && $MULTIBLEND
 // SKIP:		$BUMPMAP2 && $MULTIBLEND
+// SKIP:		$LIGHTMAP && $MULTIBLEND
+// SKIP:		$LIGHTMAP && $MODEL
 
 #include "common_vs_fxc.h"
 #include "common_deferred_fxc.h"
@@ -52,6 +56,11 @@ struct VS_INPUT
 	float3 vNormal					: NORMAL;
 #endif
 	float2 vTexCoord_0				: TEXCOORD0;
+
+#if LIGHTMAP
+	float2 vLightmapTexCoord		: TEXCOORD1;
+	float2 vLightmapTexCoordOffset	: TEXCOORD2;
+#endif
 
 #if MODEL
 
@@ -100,7 +109,7 @@ struct VS_OUTPUT
 	float3 worldTangentT			: TEXCOORD3;
 #endif
 
-#if BUMPMAP2
+#if BUMPMAP2 || LIGHTMAP
 	float4 vColor_0					: COLOR0;
 #endif
 
@@ -189,6 +198,14 @@ VS_OUTPUT main( const VS_INPUT In )
 
 #if BUMPMAP2
 	Out.vColor_0 = In.vColor_0;
+#endif
+
+#if LIGHTMAP && !BUMPMAP2
+	Out.vColor_0 = float4(0, 0, 0, 1);
+#endif
+
+#if LIGHTMAP
+	Out.vColor_0.xy = In.vLightmapTexCoord.xy;
 #endif
 
 #if MULTIBLEND

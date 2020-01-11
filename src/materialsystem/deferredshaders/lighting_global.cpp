@@ -31,6 +31,8 @@ BEGIN_VS_SHADER( LIGHTING_GLOBAL, "" )
 			pShaderShadow->EnableDepthWrites( false );
 			pShaderShadow->EnableAlphaWrites( true );
 
+			EnableAlphaBlending( SHADER_BLEND_ONE, SHADER_BLEND_ONE );
+
 			pShaderShadow->EnableTexture( SHADER_SAMPLER0, true );
 			pShaderShadow->EnableTexture( SHADER_SAMPLER1, true );
 			pShaderShadow->EnableTexture( SHADER_SAMPLER2, true );

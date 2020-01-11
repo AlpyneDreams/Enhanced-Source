@@ -1025,8 +1025,8 @@ void CDeferredViewRender::PerformLighting( const CViewSetup &view )
 
 	if ( bResetLightAccum )
 	{
-		pRenderContext->ClearColor4ub( 0, 0, 0, 0 );
-		pRenderContext->ClearBuffers( true, false );
+		//pRenderContext->ClearColor4ub( 0, 0, 0, 0 );
+		//pRenderContext->ClearBuffers( true, false );
 	}
 	else
 		DrawLightPassFullscreen( GetDeferredManager()->GetDeferredMaterial( DEF_MAT_LIGHT_GLOBAL ), lightingView.width, lightingView.height );
@@ -2925,6 +2925,13 @@ void CGBufferView::Draw()
 	pRenderContext->PushVertexShaderGPRAllocation( 32 ); //lean toward pixel shader threads
 #endif
 
+
+	// TODO: clear this conditionally
+	pRenderContext->PushRenderTargetAndViewport( GetDefRT_Lightaccum() );
+	pRenderContext->ClearColor4ub( 0, 0, 0, 0 );
+	pRenderContext->ClearBuffers( true, false );
+	pRenderContext->PopRenderTargetAndViewport();
+
 	SetupCurrentView( origin, angles, VIEW_DEFERRED_GBUFFER );
 
 	DrawSetup( 0, m_DrawFlags, 0 );
@@ -2977,9 +2984,12 @@ void CGBufferView::PushGBuffer( bool bInitial, float zScale, bool bClearDepth )
 
 	pRenderContext->SetRenderTargetEx( 1, pDepth );
 
-#if DEFCFG_DEFERRED_SHADING == 1
+#if DEFCFG_DEFERRED_SHADING == 0
+	pRenderContext->SetRenderTargetEx( 2, GetDefRT_Lightaccum() );
+#else
 	pRenderContext->SetRenderTargetEx( 2, pNormals );
 	pRenderContext->SetRenderTargetEx( 3, GetDefRT_Specular() );
+	pRenderContext->SetRenderTargetEx( 4, GetDefRT_Lightaccum() );
 #endif
 
 	pRenderContext->SetIntRenderingParameter( INT_RENDERPARM_DEFERRED_RENDER_STAGE,
