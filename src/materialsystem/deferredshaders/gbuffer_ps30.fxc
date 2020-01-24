@@ -7,6 +7,9 @@
 // STATIC:		"BLENDMODULATE"		"0..1"
 // STATIC:		"MULTIBLEND"		"0..1"
 // STATIC:		"LIGHTMAP"			"0..2"
+// STATIC:		"STATICLIGHTMODE"	"0..2"
+
+// SKIP:		$STATICLIGHTMODE && !$MODEL
 
 // SKIP:		!$BUMPMAP2 && !$MULTIBLEND && $BLENDMODULATE
 // SKIP:		!$BUMPMAP && $BUMPMAP2
@@ -94,6 +97,14 @@ struct PS_INPUT
 #endif
 #if LIGHTMAP == 2
 	float4 lightmapTexCoord2And3		: TEXCOORD6;
+#endif
+
+#if STATICLIGHTMODE
+	float3 vStaticLight				: TEXCOORD6;
+#if STATICLIGHTMODE == 2
+	float3 vStaticLight1			: TEXCOORD7;
+	float3 vStaticLight2			: TEXCOORD8;
+#endif
 #endif
 
 #if MULTIBLEND
@@ -240,7 +251,22 @@ PS_OUTPUT main( const PS_INPUT In )
 #elif LIGHTMAP == 1
 	Out.vColorLightAccum = float4( tex2D( sLightmap, In.vColor_0.xy ).rgb * LIGHT_MAP_SCALE, 0 );
 #else
-	Out.vColorLightAccum = float4( 0, 0, 0, 0 );
+	Out.vColorLightAccum = float4( 1, 0, 0, 0 );
+#endif
+
+#if STATICLIGHTMODE
+	float3 dp;
+	dp.x = saturate( dot( tangentSpaceNormal, upBumpBasis[0] ) );
+	dp.y = saturate( dot( tangentSpaceNormal, upBumpBasis[1] ) );
+	dp.z = saturate( dot( tangentSpaceNormal, upBumpBasis[2] ) );
+	dp *= dp;
+
+	float3 diffuseLight = dp.x * In.vStaticLight;
+#if STATICLIGHTMODE == 2
+	diffuseLight += dp.y * In.vStaticLight1;
+	diffuseLight += dp.z * In.vStaticLight2;
+#endif
+	//Out.vColorLightAccum = float4( 1, 0, 0, 0 );
 #endif
 
 

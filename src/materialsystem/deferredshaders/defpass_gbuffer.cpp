@@ -7,6 +7,10 @@
 
 #include "tier0/memdbgon.h"
 
+ConVar deferred_lightmaps( "deferred_lightmaps", "1", 0, "Output brush lightmaps to the light accum buffer" );
+
+static ConVarRef r_staticlight_streams( "r_staticlight_streams", true );
+
 static CCommandBufferBuilder< CFixedCommandStorageBuffer< 512 > > tmpBuf;
 
 void InitParmsGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMaterialVar **params )
@@ -71,8 +75,10 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 	const bool bFastVTex = g_pHardwareConfig->HasFastVertexTextures();
 	const bool bNoCull = IS_FLAG_SET( MATERIAL_VAR_NOCULL );
 
-	const bool bLightmap = !bModel && IS_FLAG2_SET( MATERIAL_VAR2_LIGHTING_LIGHTMAP );
+	const bool bLightmap = deferred_lightmaps.GetBool() && !bModel && IS_FLAG2_SET( MATERIAL_VAR2_LIGHTING_LIGHTMAP );
 	const bool bLightmapBump = bLightmap && IS_FLAG2_SET( MATERIAL_VAR2_LIGHTING_BUMPED_LIGHTMAP );
+
+	const int iStaticLight = bModel ? (r_staticlight_streams.GetInt() == 3 ? 2 : 1) : 0;
 
 	const bool bAlbedo = PARM_TEX( info.iAlbedo );
 	const bool bAlbedo2 = bDeferredShading && PARM_TEX( info.iAlbedo2 );
@@ -216,6 +222,7 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 		SET_STATIC_VERTEX_SHADER_COMBO( BLENDMODULATE, bBlendmodulate );
 		SET_STATIC_VERTEX_SHADER_COMBO( MULTIBLEND, bMultiBlendBump );
 		SET_STATIC_VERTEX_SHADER_COMBO( LIGHTMAP, iLightmapMode );
+		SET_STATIC_VERTEX_SHADER_COMBO( STATICLIGHTMODE, iStaticLight );
 		SET_STATIC_VERTEX_SHADER( gbuffer_vs30 );
 
 #if DEFCFG_DEFERRED_SHADING == 1
@@ -231,6 +238,7 @@ void DrawPassGBuffer( const defParms_gBuffer &info, CBaseVSShader *pShader, IMat
 		SET_STATIC_PIXEL_SHADER_COMBO( BLENDMODULATE, bBlendmodulate );
 		SET_STATIC_PIXEL_SHADER_COMBO( MULTIBLEND, bMultiBlendBump );
 		SET_STATIC_PIXEL_SHADER_COMBO( LIGHTMAP, iLightmapMode );
+		SET_STATIC_PIXEL_SHADER_COMBO( STATICLIGHTMODE, iStaticLight );
 #if DEFCFG_DEFERRED_SHADING == 1
 		SET_STATIC_PIXEL_SHADER_COMBO( TWOTEXTURE, (bAlbedo2 || bBumpmap2) && !bMultiBlend );
 		SET_STATIC_PIXEL_SHADER_COMBO( DECAL, bIsDecal );

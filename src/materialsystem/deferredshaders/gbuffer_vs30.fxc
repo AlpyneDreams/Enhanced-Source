@@ -6,6 +6,7 @@
 // STATIC:		"BLENDMODULATE"			"0..1"
 // STATIC:		"MULTIBLEND"			"0..1"
 // STATIC:		"LIGHTMAP"				"0..2"
+// STATIC:		"STATICLIGHTMODE"		"0..2"
 
 
 // DYNAMIC:		"COMPRESSED_VERTS"		"0..1"
@@ -17,7 +18,8 @@
 
 // SKIP:		$MODEL && $MULTIBLEND
 // SKIP:		$BUMPMAP2 && $MULTIBLEND
-// SKIP:		$LIGHTMAP && $MODEL
+// SKIP:		$MODEL && $LIGHTMAP
+// SKIP:		!$MODEL && $STATICLIGHTMODE
 
 #include "common_vs_fxc.h"
 #include "common_deferred_fxc.h"
@@ -59,6 +61,14 @@ struct VS_INPUT
 #if LIGHTMAP
 	float2 vLightmapTexCoord		: TEXCOORD1;
 	float2 vLightmapTexCoordOffset	: TEXCOORD2;
+#endif
+
+#if STATICLIGHTMODE
+	float vStaticLight				: COLOR1;
+#if STATICLIGHTMODE == 2
+	float vStaticLight1				: COLOR2;
+	float vStaticLight2				: COLOR3;
+#endif
 #endif
 
 #if MODEL
@@ -114,6 +124,14 @@ struct VS_OUTPUT
 #endif
 #if LIGHTMAP == 2
 	float4 lightmapTexCoord2And3		: TEXCOORD6;
+#endif
+
+#if STATICLIGHTMODE
+	float3 vStaticLight				: TEXCOORD6;
+#if STATICLIGHTMODE == 2
+	float3 vStaticLight1			: TEXCOORD7;
+	float3 vStaticLight2			: TEXCOORD8;
+#endif
 #endif
 
 #if MULTIBLEND
@@ -186,6 +204,14 @@ VS_OUTPUT main( const VS_INPUT In )
 #endif // NOT TANGENTSPACE
 
 	worldNormal = normalize( worldNormal );
+
+#if STATICLIGHTMODE
+	Out.vStaticLight = DoLighting( worldPos, worldNormal, In.vStaticLight,  true, false, false );
+#if STATICLIGHTMODE == 2
+	Out.vStaticLight1 = DoLighting( worldPos, worldNormal, In.vStaticLight1, true, false, false );
+	Out.vStaticLight2 = DoLighting( worldPos, worldNormal, In.vStaticLight2, true, false, false );
+#endif
+#endif
 
 #else // MODEL
 
