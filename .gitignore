@@ -28,6 +28,7 @@ ipch
 *.VC.db
 *.pdb
 *.mdmp
+*.FileListAbsolute.txt
 src/.vs
 
 # shader files
