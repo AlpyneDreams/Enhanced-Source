@@ -39,6 +39,10 @@ $Configuration
 		// FIXING it may actually create more issues, if not done properly. https://flak.tedunangst.com/post/warning-implicit-backdoor
 		$DisableSpecificWarnings	"$BASE;4456;4457;4458;4459;" [$VS2019]
 		
+		// warning C5205: delete of an abstract class that has a non-virtual destructor results in undefined behavior
+		// This warning is garbage, every compiler defines this behaviour in a sane way and nobody cares.
+		$DisableSpecificWarnings	"$BASE;5205;" [$VS2019]
+		
 		// Having lots of warnings makes it harder to notice new, and possibly
 		// important warnings, both on buildbot and in the output window. Lots
 		// of warnings also makes it harder to skip through errors in the output
