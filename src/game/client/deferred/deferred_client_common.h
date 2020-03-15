@@ -27,6 +27,8 @@ extern ConVar deferred_radiosity_blur_count;
 extern ConVar deferred_radiosity_blur_count_far;
 extern ConVar deferred_radiosity_debug;
 
+extern ConVar deferred_lightmaps;
+
 
 #define PROFILER_DECLARE CFastTimer __pft; __pft.Start()
 #define PROFILER_RESTART __pft.Start();

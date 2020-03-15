@@ -2985,11 +2985,13 @@ void CGBufferView::PushGBuffer( bool bInitial, float zScale, bool bClearDepth )
 	pRenderContext->SetRenderTargetEx( 1, pDepth );
 
 #if DEFCFG_DEFERRED_SHADING == 0
-	pRenderContext->SetRenderTargetEx( 2, GetDefRT_Lightaccum() );
+	if ( deferred_lightmaps.GetBool() )
+		pRenderContext->SetRenderTargetEx( 2, GetDefRT_Lightaccum() );
 #else
 	pRenderContext->SetRenderTargetEx( 2, pNormals );
 	pRenderContext->SetRenderTargetEx( 3, GetDefRT_Specular() );
-	pRenderContext->SetRenderTargetEx( 4, GetDefRT_Lightaccum() );
+	if ( deferred_lightmaps.GetBool() )
+		pRenderContext->SetRenderTargetEx( 4, GetDefRT_Lightaccum() );
 #endif
 
 	pRenderContext->SetIntRenderingParameter( INT_RENDERPARM_DEFERRED_RENDER_STAGE,

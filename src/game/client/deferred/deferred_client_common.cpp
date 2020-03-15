@@ -28,6 +28,8 @@ ConVar deferred_radiosity_blur_count( "deferred_radiosity_blur_count", "2" ); //
 ConVar deferred_radiosity_blur_count_far( "deferred_radiosity_blur_count_far", "1" ); // 1
 ConVar deferred_radiosity_debug( "deferred_radiosity_debug", "0" );
 
+ConVar deferred_lightmaps( "deferred_lightmaps", "1" );
+
 void OnCookieTableChanged( void *object, INetworkStringTable *stringTable, int stringNumber, const char *newString, void const *newData )
 {
 	if ( !newString || Q_strlen( newString ) < 1 )
