@@ -1,4 +1,4 @@
-//========= Copyright © 1996-2005, Valve Corporation, All rights reserved. ============//
+//========= Copyright ï¿½ 1996-2005, Valve Corporation, All rights reserved. ============//
 //
 // Purpose: spawn and think functions for editor-placed lights
 //
@@ -23,6 +23,16 @@ BEGIN_DATADESC( CLight )
 	DEFINE_KEYFIELD( m_iDefaultStyle, FIELD_INTEGER, "defaultstyle" ),
 	DEFINE_KEYFIELD( m_iszPattern, FIELD_STRING, "pattern" ),
 
+#ifdef DEFERRED
+	DEFINE_KEYFIELD( m_LightData.flConstantAtten,  FIELD_FLOAT, "_constant_attn" ),
+	DEFINE_KEYFIELD( m_LightData.flLinearAtten,    FIELD_FLOAT, "_linear_attn" ),
+	DEFINE_KEYFIELD( m_LightData.flQuadraticAtten, FIELD_FLOAT, "_quadratic_attn" ),
+
+	DEFINE_KEYFIELD( m_LightData.flMaxRange,       FIELD_FLOAT, "_hardfalloff" ),
+	DEFINE_KEYFIELD( m_LightData.flSpotConeInner,  FIELD_FLOAT, "_spot_cone_inner" ),
+	DEFINE_KEYFIELD( m_LightData.flSpotConeOuter,  FIELD_FLOAT, "_spot_cone_outer" ),
+#endif
+
 	// Fuctions
 	DEFINE_FUNCTION( FadeThink ),
 
@@ -36,6 +46,47 @@ BEGIN_DATADESC( CLight )
 END_DATADESC()
 
 
+#ifdef DEFERRED
+ConVar deferred_light_conversion_enabled           ( "deferred_light_conversion_enabled",            "0" );
+
+ConVar deferred_light_conversion_visible_distance  ( "deferred_light_conversion_visible_distance",   "2048.0" );
+ConVar deferred_light_conversion_visible_fade_range( "deferred_light_conversion_visible_fade_range", "512.0" );
+
+ConVar deferred_light_conversion_solution		   ( "deferred_light_conversion_solution", "0.01", 0,
+													 "The cutoff point to calculate the range of a converted light, default is 99% of the attenuated distance.");
+
+float CalculateRange( const LightData_t& light ) {
+	// let lcs = deferred_light_conversion_solution
+	// lcs = 1 / (qr^2 + lr + c)
+	//
+	// let rcplcs = 1 / deferred_light_conversion_solution
+	//
+	// rcplcs = qr^2 + lr + c
+	// qr^2 + lr + (c - rcplcs) = 0
+	//
+	// let y = c - rcpls
+	// qr^2 + lr + y = 0
+	//
+	// r = [ -l +/- sqrt(l^2 - 4 * q * y) ] / 2q
+
+	float rcplcs = deferred_light_conversion_solution.GetFloat();
+	float y = light.flConstantAtten - rcplcs;
+	float sqrtTerm = light.flLinearAtten * light.flLinearAtten - 4.0f * light.flQuadraticAtten * y;
+		  sqrtTerm = sqrtf(sqrtTerm);
+
+	// We only care about the + solution.
+
+	float range = -light.flLinearAtten + sqrtTerm;
+		  range = range / 2.0f * light.flQuadraticAtten;
+
+	// Clamp the range by the hard falloff...
+
+	if (light.flMaxRange != 0.0f)
+		range = MIN(range, light.flMaxRange);
+
+	return range;
+}
+#endif
 
 //
 // Cache user-entity-field values until spawn is called.
@@ -44,10 +95,15 @@ bool CLight::KeyValue( const char *szKeyName, const char *szValue )
 {
 	if (FStrEq(szKeyName, "pitch"))
 	{
-		QAngle angles = GetAbsAngles();
-		angles.x = atof(szValue);
-		SetAbsAngles( angles );
+		m_flPitch   = atof(szValue);
+		m_bHasPitch = true;
 	}
+#ifdef DEFERRED
+	else if (FStrEq(szKeyName, "_light"))
+	{
+		Q_strncpy( m_LightData.szDiffuse, szValue, 64 );
+	}
+#endif
 	else
 	{
 		return BaseClass::KeyValue( szKeyName, szValue );
@@ -60,6 +116,17 @@ bool CLight::KeyValue( const char *szKeyName, const char *szValue )
 // If targeted, it will toggle between on or off.
 void CLight::Spawn( void )
 {
+	if (m_bHasPitch)
+	{
+		QAngle angle = GetAbsAngles();
+		angle.x = m_flPitch;
+		SetAbsAngles(angle);
+	}
+
+#ifdef DEFERRED
+	this->ConvertLight();
+#endif
+
 	if (!GetEntityName())
 	{       // inert light
 		UTIL_Remove( this );
@@ -99,6 +166,15 @@ void CLight::Use( CBaseEntity *pActivator, CBaseEntity *pCaller, USE_TYPE useTyp
 //-----------------------------------------------------------------------------
 void CLight::TurnOn( void )
 {
+#ifdef DEFERRED
+	if ( FClassnameIs( this, "light_environment") )
+	{
+		Warning("Turn off called on light_environment!");
+		return;
+	}
+
+	ConvertLight();
+#else
 	if ( m_iszPattern != NULL_STRING )
 	{
 		engine->LightStyle( m_iStyle, (char *) STRING( m_iszPattern ) );
@@ -108,6 +184,7 @@ void CLight::TurnOn( void )
 		engine->LightStyle( m_iStyle, "m" );
 	}
 
+#endif
 	CLEARBITS( m_spawnflags, SF_LIGHT_START_OFF );
 }
 
@@ -116,7 +193,12 @@ void CLight::TurnOn( void )
 //-----------------------------------------------------------------------------
 void CLight::TurnOff( void )
 {
+#ifdef DEFERRED
+	if ( m_hDeferredLight != NULL )
+		UTIL_Remove( m_hDeferredLight );
+#else
 	engine->LightStyle( m_iStyle, "a" );
+#endif
 	SETBITS( m_spawnflags, SF_LIGHT_START_OFF );
 }
 
@@ -226,6 +308,50 @@ void CLight::FadeThink(void)
 	}
 }
 
+#ifdef DEFERRED
+void CLight::ConvertLight()
+{
+	if ( !deferred_light_conversion_enabled.GetBool() )
+		return;
+
+	// Don't convert us if we are a light directional,
+	// this is just used to double up the rays in VRAD
+	// TODO(Josh): Should we double brightness of global light
+	// when this is used?
+	if ( FClassnameIs( this, "light_directional" ) )
+		return;
+
+	m_hDeferredLight = static_cast<CDeferredLight*>(
+		CBaseEntity::CreateNoSpawn( "light_deferred", GetAbsOrigin(), GetAbsAngles(), nullptr ) );
+
+	m_hDeferredLight->KeyValue( "spawnFlags", DEFLIGHT_ENABLED | DEFLIGHT_SHADOW_ENABLED );
+
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_DIFFUSE ), m_LightData.szDiffuse );
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_AMBIENT ), vec3_origin );
+
+	float flRange = CalculateRange(m_LightData);
+	// TODO(Josh): What do we want to do for this?
+	float flPower = 2.0f;
+
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_RADIUS ), flRange );
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_POWER ),  flPower );
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_SPOTCONE_INNER ), m_LightData.flSpotConeInner );
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_SPOTCONE_OUTER ), m_LightData.flSpotConeOuter );
+
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_VIS_DIST ),  deferred_light_conversion_visible_distance.GetFloat() );
+	m_hDeferredLight->KeyValue( GetLightParamName( LPARAM_VIS_RANGE ), deferred_light_conversion_visible_fade_range.GetFloat() );
+
+	if ( GetEntityNameAsCStr() != NULL ) {
+		char szDeferredName[256];
+		V_snprintf( szDeferredName, 256, "%s_deferred", GetEntityNameAsCStr() );
+
+		m_hDeferredLight->SetName( AllocPooledString( szDeferredName ) );
+	}
+
+	DispatchSpawn( m_hDeferredLight );
+}
+#endif
+
 //
 // shut up spawn functions for new spotlights
 //
@@ -233,6 +359,10 @@ LINK_ENTITY_TO_CLASS( light_spot, CLight );
 LINK_ENTITY_TO_CLASS( light_glspot, CLight );
 LINK_ENTITY_TO_CLASS( light_directional, CLight );
 
+struct EnvLightData_t
+{
+	char szAmbient[64];
+};
 
 class CEnvLight : public CLight
 {
@@ -241,6 +371,12 @@ public:
 
 	bool	KeyValue( const char *szKeyName, const char *szValue ); 
 	void	Spawn( void );
+
+private:
+
+	EnvLightData_t m_EnvLightData;
+
+	virtual void ConvertLight();
 };
 
 LINK_ENTITY_TO_CLASS( light_environment, CEnvLight );
@@ -249,8 +385,16 @@ bool CEnvLight::KeyValue( const char *szKeyName, const char *szValue )
 {
 	if (FStrEq(szKeyName, "_light"))
 	{
-		// nothing
+#ifdef DEFERRED
+		return BaseClass::KeyValue(szKeyName, szValue);
+#endif
 	}
+#ifdef DEFERRED
+	else if (FStrEq(szKeyName, "_ambient"))
+	{
+		Q_strncpy( m_EnvLightData.szAmbient, szValue, 64 );
+	}
+#endif
 	else
 	{
 		return BaseClass::KeyValue( szKeyName, szValue );
@@ -263,4 +407,38 @@ bool CEnvLight::KeyValue( const char *szKeyName, const char *szValue )
 void CEnvLight::Spawn( void )
 {
 	BaseClass::Spawn( );
+}
+
+void CEnvLight::ConvertLight()
+{
+	if ( !deferred_light_conversion_enabled.GetBool() )
+		return;
+
+	if ( GetGlobalLight() != NULL )
+	{
+		Warning( "Global light already exists... Not creating a new one for light_environment." );
+		return;
+	}
+
+	// Need to invert the pitch...
+	QAngle angle = GetAbsAngles();
+	angle.x = -angle.x;
+
+	CBaseEntity::CreateNoSpawn( "light_deferred_global", GetAbsOrigin(), angle, nullptr );
+
+	CDeferredLightGlobal* pGlobalLight = GetGlobalLight();
+
+	if ( pGlobalLight == NULL )
+	{
+		Warning( "Failed to create global light for light_environment..." );
+		return;
+	}
+
+	pGlobalLight->KeyValue( "spawnFlags", DEFLIGHTGLOBAL_ENABLED | DEFLIGHTGLOBAL_SHADOW_ENABLED );
+
+	pGlobalLight->KeyValue( "diffuse",		m_LightData.szDiffuse );
+	pGlobalLight->KeyValue( "ambient_high", m_EnvLightData.szAmbient );
+	pGlobalLight->KeyValue( "ambient_low",  m_EnvLightData.szAmbient );
+
+	DispatchSpawn( pGlobalLight );
 }

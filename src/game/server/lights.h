@@ -10,6 +10,24 @@
 #pragma once
 #endif
 
+#ifdef DEFERRED
+#include "deferred/CDefLight.h"
+
+struct LightData_t
+{
+	char   szDiffuse[64];
+
+	float  flConstantAtten;
+	float  flLinearAtten;
+	float  flQuadraticAtten;
+
+	float  flMaxRange;
+
+	float  flSpotConeInner;
+	float  flSpotConeOuter;
+};
+#endif
+
 //-----------------------------------------------------------------------------
 // Purpose: 
 //-----------------------------------------------------------------------------
@@ -43,6 +61,19 @@ private:
 	string_t m_iszPattern;
 	char	m_iCurrentFade;
 	char	m_iTargetFade;
+
+	bool    m_bHasPitch = false;
+	float   m_flPitch;
+
+#ifdef DEFERRED
+	virtual void ConvertLight();
+
+	CHandle<CDeferredLight> m_hDeferredLight;
+
+protected:
+
+	LightData_t m_LightData;
+#endif
 };
 
 #endif // LIGHTS_H
